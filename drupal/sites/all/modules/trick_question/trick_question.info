@@ -1,0 +1,12 @@
+; $Id: 
+name = Trick Question
+description = Super simple Captcha-function for forms
+core = 7.x
+version = "7.x-1.2"
+
+; Information added by drupal.org packaging script on 2011-06-06
+version = "7.x-1.2"
+core = "7.x"
+project = "trick_question"
+datestamp = "1307398318"
+
