@@ -1,0 +1,7 @@
+core            = "7.x"
+description     = "Пример применения jQuery UI DatePicker для exposed фильтра по дате во Views"
+name            = "MyDatePicker"
+dependencies[]  = views
+
+
+

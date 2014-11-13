@@ -1,0 +1,15 @@
+<?php
+
+/**
+* Реализуем хук hook_page_alter().
+*/
+function mydatepicker_page_alter(&$page) {
+  // Нам нужна только страница с нашим View.
+  if (arg(0) == 'simple-node-view') {
+    // Подключим системную библиотеку jQuery UI: DatePicker.
+    drupal_add_library('system', 'ui.datepicker');
+
+    // Нам нужно знать ID поля фильтра. input#edit-created.
+    drupal_add_js('jQuery(document).ready(function () { jQuery("input#edit-created").datepicker(); });', 'inline');
+  }
+}
