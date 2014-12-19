@@ -60,6 +60,8 @@ function events_widget_menu() {
 }
 
 function events_widget_accept($uid, $nid) {
+  ctools_include('modal');
+  ctools_include('ajax');
   global $user;
   if ($user->uid == $uid) {
     $criteria = array(
@@ -78,6 +80,7 @@ function events_widget_accept($uid, $nid) {
 
       $votes_count = count(votingapi_select_votes($wide_criteria, $wide_limit));
       $commands[] = ajax_command_html('#events_ex' . $nid, 'Пойду | ' . $votes_count);
+      $commands[] = ctools_ajax_command_attr('#events_ex'.$nid,'title',t('Согласиться'));
       return array('#type' => 'ajax', '#commands' => $commands);
     }
     else {
@@ -96,6 +99,7 @@ function events_widget_accept($uid, $nid) {
 
       $votes_count = count(votingapi_select_votes($wide_criteria, $wide_limit));
       $commands[] = ajax_command_html('#events_ex' . $nid, 'Не пойду | ' . $votes_count);
+      $commands[] = ctools_ajax_command_attr('#events_ex'.$nid,'title',t('Отказаться'));
       return array('#type' => 'ajax', '#commands' => $commands);
     }
   }
