@@ -1,5 +1,5 @@
 <?php
-
+//ghghhhhhgjjgjh
 function events_widget_node_view($node, $view_mode, $langcode) {
   global $user;
   if (($node->type == 'events') && ($user->uid != 0)) {
