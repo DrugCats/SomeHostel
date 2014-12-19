@@ -1,0 +1,119 @@
+<?php
+
+function events_widget_node_view($node, $view_mode, $langcode) {
+  global $user;
+  if (($node->type == 'events') && ($user->uid != 0)) {
+    $date_now = date('Y-m-d');
+    $date_field_eventdate = $node->field_eventdate['und'][0]['value'];
+    if ($date_now <= $date_field_eventdate) {
+      //получаем количество голосов
+      $wide_criteria = array(
+        'entity_id' => $node->nid,
+      );
+      $wide_limit = 0;
+      $votes_count = count(votingapi_select_votes($wide_criteria, $wide_limit));
+
+      $criteria = array(
+        'entity_id' => $node->nid,
+        'uid' => $user->uid,
+      );
+      $limit = 1;
+      $votes = votingapi_select_votes($criteria, $limit);
+
+      if (count($votes) > 0) {
+        $node->content['links']['comment']['#links']['events_ex'] = array(
+          'title' => t('Не пойду | ' . $votes_count),
+          'href' => 'events_widget/' . $user->uid . '/' . $node->nid . '/execute',
+          'attributes' => array(
+            'class' => array('use-ajax', 'events_ex'),
+            'title' => t('Отказаться'),
+            'id' => 'events_ex' . $node->nid,
+          )
+        );
+      }
+      else {
+        $node->content['links']['comment']['#links']['events_ex'] = array(
+          'title' => t('Пойду | ' . $votes_count),
+          'href' => 'events_widget/' . $user->uid . '/' . $node->nid . '/execute',
+          'attributes' => array(
+            'class' => array('use-ajax', 'events_ex'),
+            'title' => t('Согласиться'),
+            'id' => 'events_ex' . $node->nid,
+          )
+        );
+      }
+    }
+    // подключаем необходимые ajax библиотеки
+    drupal_add_library('system', 'drupal.ajax');
+    drupal_add_library('system', 'jquery.form');
+  }
+}
+
+/**
+ *  Implements hook_menu().
+ */
+function events_widget_menu() {
+  $items['events_widget/%/%/execute'] = array(
+    'page callback' => 'events_widget_accept',
+    'page arguments' => array(1, 2),
+    'access arguments' => array('events access'),
+    'delivery callback' => 'ajax_deliver',
+  );
+  return $items;
+}
+
+function events_widget_accept($uid, $nid) {
+  global $user;
+  if ($user->uid == $uid) {
+    $criteria = array(
+      'entity_id' => $nid,
+      'uid' => $uid,
+    );
+    $limit = 1;
+    $votes = votingapi_select_votes($criteria, $limit);
+
+    //получаем количество голосов
+    $wide_criteria = array(
+      'entity_id' => $nid,
+    );
+    $wide_limit = 0;
+    if (count($votes) > 0) {
+      votingapi_delete_votes($votes);
+
+      $votes_count = count(votingapi_select_votes($wide_criteria, $wide_limit));
+      $commands[] = ajax_command_html('#events_ex' . $nid, 'Пойду | ' . $votes_count);
+      return array('#type' => 'ajax', '#commands' => $commands);
+    }
+    else {
+      $vote = array(
+        'entity_type' => 'node',
+        'entity_id' => $nid,
+        'value_type' => 'points',
+        'value' => 1,
+        'uid' => $uid,
+        'tag' => 'vote',
+        'timestamp' => REQUEST_TIME,
+        'vote_source' => ip_address(),
+      );
+      $new_votes = array($vote);
+      votingapi_add_votes($new_votes);
+
+      $votes_count = count(votingapi_select_votes($wide_criteria, $wide_limit));
+      $commands[] = ajax_command_html('#events_ex' . $nid, 'Не пойду | ' . $votes_count);
+      return array('#type' => 'ajax', '#commands' => $commands);
+    }
+  }
+}
+
+/**
+ *  Implements hook_permission().
+ */
+function events_widget_permission() {
+  return array(
+    'events access'
+    => array(
+      'title' => t('Allow events operations'),
+      'description' => t('Allow events operations'),
+    ),
+  );
+}
