@@ -1,0 +1,78 @@
+<?php
+
+function exchange_widget_comment_view($comment, $view_mode, $langcode)
+{
+    global $user;
+
+    $node = node_load($comment->nid);
+    $t_user = user_load($node->uid);
+    $target_type = $node->type;
+    if (($target_type == 'exchange') && ($t_user->uid == $user->uid) && ($comment->uid != $user->uid) && ($node->field_exchange_executed['und'][0]['value'] != 1)) {
+        $comment->content['links']['comment']['#links']['exchange_ex'] = array(
+            'title' => t('Обменять'),
+            'href' => 'exchange_widget/' . $node->nid . '/' . $comment->cid . '/execute',
+            'html' => TRUE,
+            'attributes' => array(
+                'class' => array('use-ajax'),
+                'title' => t('Согласиться на обмен'),
+            )
+        );
+        // подключаем необходимые ajax библиотеки
+        drupal_add_library('system', 'drupal.ajax');
+        drupal_add_library('system', 'jquery.form');
+
+    }
+}
+
+function exchange_widget_menu()
+{
+    $items['exchange_widget/%/%/execute'] = array(
+        'page callback' => 'exchange_widget_do_exchange',
+        'page arguments' => array(1, 2),
+        'access arguments' => array(1, 2),
+        'delivery callback' => 'ajax_deliver',
+        'access callback' => '_exchange_access'
+    );
+    return $items;
+}
+
+function _exchange_access($nid, $cid)
+{
+    global $user;
+    $node = node_load($nid);
+    $t_user = user_load($node->uid);
+    $comment = comment_load($cid);
+    return user_access('exchange access') && ($t_user->uid == $user->uid) && ($comment->uid != $user->uid);
+}
+
+function exchange_widget_do_exchange($nid, $cid)
+{
+    global $user;
+    $comment = comment_load($cid);
+    $user_author = user_load($comment->uid);
+    $node = node_load($nid);
+    $node->field_exchange_executed['und'][0]['value'] = 1;
+    node_save($node);
+    drupal_mail('system', 'mail', $user_author->mail, language_default(), array(
+        'context' => array(
+            'subject' => 'Обмен на информационном портале общежитий',
+            'message' => 'Пользователь ' . $user->name . ' согласен поменяться.\nТема обмена: ' . $node->title . '\nКомментарий: ' . $comment->subject . '\nhttp://fh7909gd.bget.ru/node/' . $nid
+        )
+    ));
+
+    $commands[] = ajax_command_remove('.exchange_ex');
+    $commands[] = ajax_command_alert("Обмен совершен!");
+    return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+function exchange_widget_permission()
+{
+    return array('exchange access'
+    => array(
+            'title' => t('Allow exchange'),
+            'description' => t('Allow exchange operation'),
+        ),
+    );
+}
+
+//coder
