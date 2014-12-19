@@ -1625,12 +1625,17 @@ function theme_menu_tree($variables) {
 function theme_menu_link(array $variables) {
   $element = $variables['element'];
   $sub_menu = '';
-
+    // dsm($variables);
   if ($element['#below']) {
     $sub_menu = drupal_render($element['#below']);
   }
   $output = l($element['#title'], $element['#href'], $element['#localized_options']);
-  return '<li' . drupal_attributes($element['#attributes']) . '>' . $output . $sub_menu . "</li>\n";
+    //dsm($output);
+    if (($element["#original_link"]["menu_name"] == "menu-menuforum") || ($element["#original_link"]["menu_name"] == "menu-menuevents") || ($element["#original_link"]["menu_name"] == "menu-menuexchange")) {
+        return '<div' . drupal_attributes($element['#attributes']) . '>' . $output . $sub_menu . "</div>\n";
+    } else {
+        return '<li' . drupal_attributes($element['#attributes']) . '>' . $output . $sub_menu . "</li>\n";
+    }
 }
 
 /**

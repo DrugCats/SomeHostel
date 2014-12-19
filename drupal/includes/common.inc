@@ -2482,7 +2482,7 @@ function l($text, $path, array $options = array()) {
   }
   // The result of url() is a plain-text URL. Because we are using it here
   // in an HTML argument context, we need to encode it properly.
-  return '<a href="' . check_plain(url($path, $options)) . '"' . drupal_attributes($options['attributes']) . '>' . ($options['html'] ? $text : check_plain($text)) . '</a>';
+    return '<a href="' . check_plain(url($path, $options)) . '"' . drupal_attributes($options['attributes']) . '><div style="display:inline" >' . ($options['html'] ? $text : check_plain($text)) . '</div></a>';
 }
 
 /**
