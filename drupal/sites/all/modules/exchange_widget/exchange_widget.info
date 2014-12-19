@@ -1,0 +1,9 @@
+name = Exchange widget
+description = Widget for exchange.
+package = Voting
+core = 7.x
+files[] = exchange_widget.module
+
+project = "exchange_widget"
+
+
